@@ -1,0 +1,681 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Javascript this keyword - Javascript object context</title>
+    <link href="../main.css" rel="stylesheet" />
+</head>
+<body>
+
+<h1> Javascript this keyword - Javascript object context </h1>
+
+<p>In javascript object context is very important topics and its confusing sometimes. Depending upon how function is called the value of this can be different. Lets start with very simple function call.</p>
+
+<pre class="jsCode">
+function f() {
+    return this;
+}
+</pre>
+
+<p>Lets call this function in various scenario.</p>
+
+<h2 id="scenario1">Scenario 1</h2>
+<h3>Call function f in global context</h3>
+
+<p> Now lets call just create function f in global context </p>
+
+<pre class="jsCode">
+    console.log('f() --- ', f());
+</pre>
+
+<p>Can yo guess what does the function call f() returns. You guess right, it returns global javascript object window.</p>
+
+<p>Lets spend sometime to analyse this. We called f() without passing any context so its global context. When function is called in global context,
+    the value of this would be window. Lets jump to <a href="#scenario2">scenario 2</a> and call it differently</p>
+
+
+
+<h2 id="scenario2">Scenario 2</h2>
+<h3>Call function f inside outer function O</h3>
+
+<p>Now lets create one outer function O and call our initially crated function f and see what would be the result</p>
+
+<pre class="jsCode">
+    function O() {
+        var f = function() {
+            return this;
+        }
+        return f();
+    }
+
+    console.log('O()  --- ', O());
+
+    // Here is the result of this call
+    // ()  ---  Window {external: Object,…}
+</pre>
+<p>In this case also it returns global object window, how? Because we called inner function inside the outer function O and outer function is in global context. So it returns global object windows as a value of this special keyword</p>
+
+
+
+<h2 id="scenario3">Scenario 3</h2>
+<h3>Call function f inside outer function O in strict mode</h3>
+
+<p>Now lets call inner function f in the context of outer function but in strict mode </p>
+
+<pre class="jsCode">
+    function O() {
+    "use strict";
+        var f = function() {
+            return this;
+        }
+        return f();
+    }
+
+    console.log('O()  --- ', O());
+
+    //
+</pre>
+
+<p>In our previous scenario this returned window global object but in this case it will return undefined. How ? Because we called function in strict mode inside outer function and outer function is in global context. So in javascript if you call inner function
+inside outer function in strict mode, context would be whatever you set while calling the function. In this case we did not set any context so its undefined. If it was not strict mode as an our previous scenario, the default would be global objet window if no
+context is passed</p>
+
+
+<h2 id="scenario4">Scenario 4</h2>
+<h3>Call arrow function arrow f inside outer function O</h3>
+
+<p>In this scenario, we are going to create inner function f inside outer function O, but in this case we are are going to make innder function as outer function which does behave differently with normal inner function in terms of its context. The rule of thum
+for arrow function is its context would be the context of outer function. Lets jump to the example which makes easier to understand what I mean</p>
+
+<pre class="jsCode">
+    function O() {
+        var f = () => this;
+
+        return f();
+    }
+
+    console.log('O()  --- ', O());
+
+    // O()  ---  Window {external: Object,…}
+</pre>
+
+<p>After executing the above snipped of code, it will return window global object because in arrow function, its context would be context of outer function call.</p>
+
+<h2 id="scenario5">Scenario 5</h2>
+<h3>Call arrow function inside outer method (Object's method)</h3>
+
+<p>Now lets make a minor change in the above scenario and call the inner arrow function inside the object method. It will gives us different result </p>
+
+<pre class="jsCode">
+    function O() {
+        this.getM = function() {
+            var f = () => this;
+            return f();
+        }
+        return this;
+    }
+    console.log('new O().getM()  --- ', new O().getM());
+
+    // new O().getM()  ---  O {}
+
+</pre>
+
+<p>This scenario explains more clearly about the theory we set in previous scenario where we said that call to arrow function inside outer function will set the object context from its outer function. In this case outer function (Lets call method if its object's function)
+is the method of instances of function O. so its context would be object of Function O.</p>
+
+<p>However if we just call O().getM(), it will return global object because it matches one of the theory we set in one of the previous scenario that inner function called inside outer function gives the context of outer function which would be window in this case. But
+as soon as we create object out of function, the context of outer function would be object created out of it. In this case its is new O().getM(). You can put it in a variable like below example. </p>
+
+<pre class="jsCode">
+    function O() {
+        this.getM = function() {
+            var f = () => this;
+            return f();
+        }
+        return this;
+    }
+
+    var myObj = new new O().getM();
+    console.log('myObj  --- ', myObj);
+
+    // myObj  ---  O.getM {}
+
+</pre>
+
+<p>Both of above two examples returns same because both are objects created from outer function O.</p>
+
+<h2 id="scenario6">Scenario 6</h2>
+<h3>Call arrow function inside outer method in strict mode</h3>
+
+<pre class="jsCode">
+    function O() {
+        "use strict";
+        this.getM = function() {
+            var f = () => this;
+            return f();
+        }
+        return this;
+    }
+    console.log('new O().getM()  --- ', new O().getM());
+
+    // O().getM()  ---  O {}
+
+</pre>
+
+<p>As you can see, there is no difference between strict mode and non strict mode in terms of context while calling inner function. So this is one of the note to point while working with arrow function</p>
+
+<h2 id="scenario7">Scenario 7</h2>
+<h3>Call arrow function inside outer method passing context of another object, call, apply and bind</h3>
+
+<pre class="jsCode">
+    var obj = {};
+    function O() {
+        this.getM = function() {
+            var f = () => this;
+            return f.call(obj);
+        }
+        return this;
+    }
+    console.log('new O().getM()  --- ', new O().getM());
+
+    // new O().getM()  ---  O {}getM:
+</pre>
+
+<p>In this case it will really does not care about what context was passed but it gives the context of outer function. So this is also the point to note. However lets see in next scenario for normal non arrow function, its result will be different.</p>
+
+<p>We achieve same result with apply and bind. Lets see the following exaple with apply first</p>
+
+<pre class="jsCode">
+    var obj = {};
+    function O() {
+        this.getM = function() {
+            var f = () => this;
+            return f.apply(obj);
+        }
+        return this;
+    }
+    console.log('new O().getM()  --- ', new O().getM());
+
+    // new O().getM()  ---  O {}getM:
+</pre>
+
+<p>Now lets execute the same example with bid.</p>
+
+<pre class="jsCode">
+    var obj = {};
+    function O() {
+        this.getM = function() {
+            var f = () => this;
+            return f.bind(obj);
+        }
+        return this;
+    }
+    console.log('new O().getM()()  --- ', new O().getM()());
+
+    // new O().getM()()  ---  O {}getM:
+</pre>
+
+
+<h2 id="scenario8">Scenario 8</h2>
+<h3>Call non arrow normal function inside outer method passing context of another object - call, apply and bind</h3>
+
+<pre class="jsCode">
+    var obj = {};
+    function O() {
+        this.getM = function() {
+            var f = function() {
+                return this;
+            }
+            return f.call(obj);
+        }
+        return this;
+    }
+    console.log('new O().getM()  --- ', new O().getM());
+
+    // new O().getM()  ---  Object {}
+</pre>
+
+<p>In this scenario, its non arrow function and context was passed while calling inner function f inside outer method O. The interesting thing in this scenario was the result it returned which is different than immediate previous scenario. The reason
+for that is while context is passed from normal function context would be what ever was passed while calling the function. In our case it is obj Object/</p>
+
+<p>The same holds for calling function giving context with apply and bind. Lets see the example below. First lets see how it behaves with apply.</p>
+
+<pre class="jsCode">
+    var obj = {};
+    function O() {
+        this.getM = function() {
+            var f = function() {
+                return this;
+            }
+            return f.apply(obj);
+        }
+        return this;
+    }
+    console.log('new O().getM()  --- ', new O().getM());
+
+    // new O().getM()  ---  Object {}
+</pre>
+
+<p>Now lets see with bind.</p>
+
+<pre class="jsCode">
+    var obj = {};
+    function O() {
+        this.getM = function() {
+            var f = function() {
+                return this;
+            }
+            return f.bind(obj);
+        }
+        return this;
+    }
+    console.log('new O().getM()()  --- ', new O().getM()());
+
+    // new O().getM()()  ---  Object {}
+</pre>
+
+<p>All are same wheather we use call, apply or bind to bound the context while calling function</p>
+
+<h2 id="scenario9">Scenario 9</h2>
+<h3>Call function inside outer method of literal object </h3>
+
+<p>Calling the inner function within the method of object literal is same as one of the scenario explained earlier about calling it inside the method of any object. It will return the context of function. Lets see by examples. Lets call inner
+function.</p>
+
+<pre class="jsCode">
+    var L = {
+        getM: function() {
+            var f = function() {
+                return this;
+            }
+            return f();
+        }
+    };
+
+    console.log('L.getM()  --- ', L.getM());
+
+    // L.getM()  ---  Window {external: Object, …}
+</pre>
+
+<p>In this case it returns global object window because there is no context of function f. When there is no context in function then, it will be default to global window object.</p>
+
+
+<h2 id="scenario10">Scenario 10</h2>
+<h3>Call function inside outer method of literal object in strict mode </h3>
+
+<pre class="jsCode">
+    var L = {
+        getM: function() {
+            "use strict";
+            var f = function() {
+                return this;
+            }
+            return f();
+        }
+    };
+
+    console.log('L.getM()  --- ', L.getM());
+
+    // L.getM()  ---  undefined
+</pre>
+
+<p>This will match one of the earlier discussed scenario. In strict mode, the context would whatever it was supplied while calling. In this case, we did not pass anything so its undefined. </p>
+
+<h2 id="scenario11">Scenario 11</h2>
+<h3>Call arrow function inside outer method of literal object in strict mode and or not strict mode </h3>
+
+<p>As we discussed in one of the above scenario that there is no difference between strict and non strict mode for arrow function. It will regard less gives the context of outer function.</p>
+
+<pre class="jsCode">
+    var L = {
+        getM: function() {
+            var f = () => this;
+
+            return f();
+        }
+    };
+
+    console.log('L.getM()  --- ', L.getM());
+
+    // L.getM()  ---  Object {}getM: ()
+</pre>
+
+<p>It returns context of outer method getM which is called in the context of object L. Lets see the same result in strict mode as well. </p>
+
+<pre class="jsCode">
+    var L = {
+        getM: function() {
+            "use strict";
+            var f = () => this;
+
+            return f();
+        }
+    };
+
+    console.log('L.getM()  --- ', L.getM());
+
+    // L.getM()  ---  Object {}getM: ()
+</pre>
+
+<h2 id="scenario12">Scenario 12</h2>
+<h3>Call arrow function inside outer method of literal object in strict mode and or not strict mode passing object context</h3>
+
+<p>As we have already discussed arrow function passing object context inside objects methods, which simply returns outer methods context and ignores the context passed while calling it. Lets see some examples below. Lets start with strict mode passing context by call </p>
+
+<pre class="jsCode">
+    var obj = { a: 'aa'};
+    var L = {
+        getM: function() {
+            "use strict";
+            var f = () => this;
+
+            return f.call(obj);
+        }
+    };
+
+    console.log('L.getM()  --- ', L.getM());
+
+    // L.getM()  ---  Object {}getM: ()
+</pre>
+
+<p>As you saw by executing above example, that it simply ignores the passing context but gets the context of outer method in object literal same as constructor objects method. Now lets see with apply.</p>
+
+<pre class="jsCode">
+    var obj = { a: 'aa'};
+    var L = {
+        getM: function() {
+            "use strict";
+            var f = () => this;
+
+            return f.apply(obj);
+        }
+    };
+
+    console.log('L.getM()  --- ', L.getM());
+
+    // L.getM()  ---  Object {}getM: ()
+</pre>
+
+<p>Now lets see with bind.</p>
+
+<pre class="jsCode">
+    var obj = { a: 'aa'};
+    var L = {
+        getM: function() {
+            "use strict";
+            var f = () => this;
+
+            return f.bind(obj);
+        }
+    };
+
+    console.log('L.getM()()  --- ', L.getM()());
+
+    // L.getM()()  ---  Object {}getM: ()
+</pre>
+
+<p>Now lets repeat all above examples for this scenario in not strict mode, result should be same. Lets start with call</p>
+
+<pre class="jsCode">
+    var obj = { a: 'aa'};
+    var L = {
+        getM: function() {
+            var f = () => this;
+
+            return f.call(obj);
+        }
+    };
+
+    console.log('L.getM()  --- ', L.getM());
+
+    // L.getM()  ---  Object {}getM: ()
+</pre>
+
+<p>Now lets see with apply</p>
+
+<pre class="jsCode">
+    var obj = { a: 'aa'};
+    var L = {
+        getM: function() {
+            var f = () => this;
+
+            return f.apply(obj);
+        }
+    };
+
+    console.log('L.getM()  --- ', L.getM());
+
+    // L.getM()  ---  Object {}getM: ()
+</pre>
+
+<p>And finally with bind.</p>
+
+<pre class="jsCode">
+    var obj = { a: 'aa'};
+    var L = {
+        getM: function() {
+            var f = () => this;
+
+            return f.bind(obj);
+        }
+    };
+
+    console.log('L.getM()()  --- ', L.getM()());
+
+    // L.getM()()  ---  Object {}getM: ()
+</pre>
+
+<h2 id="scenario13">Scenario 13</h2>
+<h3>Call non arrow function inside outer method of literal object in strict mode and or not strict mode passing object context</h3>
+
+<p>Here is behaves differently with strict and not strict mode.First start strict mode with call.</p>
+
+<pre class="jsCode">
+    var obj = { a: 'aa'};
+    var L = {
+        getM: function() {
+            "use strict";
+            var f = function() {
+                return this;
+            }
+            return f.call(obj);
+        }
+    };
+
+    console.log('L.getM()  --- ', L.getM());
+
+    // L.getM()  ---  Object {a: "aa"}
+</pre>
+
+<p>In this case, this should return obj as the context because we have passed obj as context while calling the function f.</p>
+
+<p>Lets see with apply.</p>
+
+<pre class="jsCode">
+    var obj = { a: 'aa'};
+    var L = {
+        getM: function() {
+            "use strict";
+            var f = function() {
+                return this;
+            }
+            return f.apply(obj);
+        }
+    };
+
+    console.log('L.getM()  --- ', L.getM());
+
+    // L.getM()  ---  Object {a: "aa"}
+</pre>
+
+<p>You saw same result with apply as well. Now lets see with bind.</p>
+
+<pre class="jsCode">
+    var obj = { a: 'aa'};
+    var L = {
+        getM: function() {
+            "use strict";
+            var f = function() {
+                return this;
+            }
+            return f.bind(obj);
+        }
+    };
+
+    console.log('L.getM()()  --- ', L.getM()());
+
+    // L.getM()()  ---  Object {a: "aa"}
+</pre>
+
+<p>No need to mention that all call passing with context wheather its call or apply or bind, gives the same result. Now lets these examples in not strict mode. Lets start with call. </p>
+
+<pre class="jsCode">
+    var obj = { a: 'aa'};
+    var L = {
+        getM: function() {
+            var f = function() {
+                return this;
+            }
+            return f.call(obj);
+        }
+    };
+
+    console.log('L.getM()  --- ', L.getM());
+
+    // L.getM()  ---  Object {a: "aa"}
+</pre>
+<p>Now lets see it with apply and bind respectively.</p>
+
+<pre class="jsCode">
+    var obj = { a: 'aa'};
+    var L = {
+        getM: function() {
+            var f = function() {
+                return this;
+            }
+            return f.apply(obj);
+        }
+    };
+
+    console.log('L.getM()  --- ', L.getM());
+
+    // L.getM()  ---  Object {a: "aa"}
+</pre>
+
+
+<pre class="jsCode">
+    var obj = { a: 'aa'};
+    var L = {
+        getM: function() {
+            var f = function() {
+                return this;
+            }
+            return f.bind(obj);
+        }
+    };
+
+    console.log('L.getM()()  --- ', L.getM()());
+
+    // L.getM()()  ---  Object {a: "aa"}
+</pre>
+
+<p>So the interesting point here is that all call returs same as strict mode which worth making a note that while passing the context calling inner function inside object literal, strict and not strict mode returns same which is context passed while calling.</p>
+
+
+<h2 id="scenario14">Scenario 14</h2>
+<h3>Call normal function inside outer method of literal object to get the outer methods context as arrow function</h3>
+
+<p>Arrow function was created to fix the problem that javascript had about the context of inner function. To get the outer function context, before arrow function we have to do something like this. Either adding self = this or that = this in outer method or functiuon.
+Lets see the example below.</p>
+
+<pre class="jsCode">
+    var L = {
+        getM: function() {
+            var f = function() {
+                return this;
+            }
+            return f();
+        }
+    };
+
+    console.log('L.getM()  --- ', L.getM());
+
+    // L.getM()  ---  Window {external: Object,…}
+</pre>
+
+<p>Here you clearly see that the context of this was inner functions context which is global window in this case. We had add self=this to fix this problem. Lets see the example below.</p>
+
+<pre class="jsCode">
+    var L = {
+        getM: function() {
+            var self = this;
+            var f = function() {
+                return self;
+            }
+            return f();
+        }
+    };
+
+    console.log('L.getM()  --- ', L.getM());
+
+    // L.getM()  ---  Object {}getM: ()
+</pre>
+
+<p>As you noticed from the example above that we had to have some work around to get the outer objects context. Now lets see arrow function which fix this problem without adding anything.</p>
+
+<pre class="jsCode">
+    var L = {
+        getM: function() {
+            var f = () => this;
+            return f();
+        }
+    };
+
+    console.log('L.getM()  --- ', L.getM());
+
+    // L.getM()  ---  Object {}getM: ()
+</pre>
+<p>This precisely gives the outer methods context without any work around. We can also try following example calling the innder function passing the context of outer function. But in this case, we have to manually pass the context.</p>
+
+<pre class="jsCode">
+    var L = {
+        getM: function() {
+            var self = this;
+            var f = function() {
+                return self;
+            }
+            return f.call(this);
+        }
+    };
+
+    console.log('L.getM()  --- ', L.getM());
+
+    // L.getM()  ---  Object {}getM: ()
+</pre>
+
+<p>As yet we can do this by other way as well by making minor changes and passing this as context in inner function and returning it. Lets see the example to know exactly what I mean.</p>
+
+<pre class="jsCode">
+    var L = {
+        getM: function() {
+            var self = this;
+            var f = function(selfObj) {
+                return selfObj;
+            }
+            return f(this);
+        }
+    };
+
+    console.log('L.getM()  --- ', L.getM());
+
+    // L.getM()  ---  Object {}getM: ()
+</pre>
+
+
+<h3>Notes</h3>
+<h4>Strict mode will change the context if its context was not set. The context would be undefined if no context given while calling function where as in no strict mode it would be global window as context</h4>
+<h4>For arrow function, context is always outer function context regard less of what context is passed while calling it.</h4>
+<h4>For object literal and constructor object and passing the context and calling inner function inside method, will always returs the passed object context while calling.</h4>
+
+</body>
+</html>
