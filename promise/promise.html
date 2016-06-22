@@ -1,0 +1,229 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Javascript promise - feature feature</title>
+    <link href="../main.css" rel="stylesheet" />
+</head>
+<body>
+
+<h1>Javascript Promise</h1>
+
+<h2 id="browserSupport">Browser support</h2>
+<h3>Supported</h3>
+<p>Promise is future javascript feature however it is supported in the following browser and its version.</p>
+<ul>
+    <li>Chrome >= 45 </li>
+    <li>Firefox >=45</li>
+    <li>Edge >=13</li>
+    <li>Safari >=9.1</li>
+    <li>Opera >=38</li>
+    <li>IOS Safari >=8.4</li>
+    <li>Android browser >=4.4.4</li>
+    <li>Chrome for android >=50</li>
+</ul>
+
+<h3>No Supported</h3>
+<p>And not supported on following browser and version.</p>
+<ul>
+    <li>IE - any version</li>
+    <li>Opera Mini - any version</li>
+    <li>Above mentioned browser in supported section with version less than mentioned there</li>
+</ul>
+
+<h2 id="background">Background</h2>
+
+<p>Before the native javascript promise API, there were various frameworks providing promise API, but they were slightly different from each other. However when its native now with most modern browser, you can write uniform code now onwards.</p>
+
+<h2>Most basic feature of Promise</h2>
+
+<ul>
+    <li>At any given point of time, promise can either fail or success, not both nor switch happens from fail to success other way. </li>
+    <li>If promise was fail or succeed and you add listener for either, the right listener will be called. If it was succeed, success listener will be called and so on. </li>
+</ul>
+
+<h2 id="promiseState">Promise stated</h2>
+
+<p>Promise can have following states</p>
+
+<ul>
+    <li>Fulfilled: Promise succeed.</li>
+    <li>Rejected: Promise failed.</li>
+    <li>Pending: Promise neither succeed nor failed. Its on pending.</li>
+    <li>Settled: Promise either succeed or failed.</li>
+</ul>
+
+<h2 id="example1">Example 1</h2>
+<h2>Basic promise use</h2>
+
+<pre class="jsCode">
+    "use strict";
+
+function myPromise(condition) {
+    var intervalTime = 1000;
+    return new Promise(function(resolve, reject) {
+        setTimeout(function() {
+            if(condition){
+                console.log('passed');
+                resolve(condition);
+            } else {
+                console.log('failed');
+                reject({error: 'error'});
+            }
+        }, intervalTime);
+
+    });
+}
+
+var myPromiseObj = new myPromise('abc');
+
+myPromiseObj.then(function(data) {
+    console.log('first then', data);
+    return data + '1';
+})
+    .then(function(data) {
+        console.log('second then', data);
+        return data + '2';
+    }, function(error) {
+        console.log('error', error);
+    })
+    .then(function(data) {
+        console.log('third then', data);
+        return data + '3';
+    }, function(error) {
+        console.log('error', error);
+    })
+    .catch(function(error) {
+        console.log('catched', error);
+    });
+
+
+var myPromiseObjE = new myPromise(false);
+
+myPromiseObjE.then(function(data) {
+    console.log('first then', data);
+})
+    .then(function(data) {
+        console.log('second then', data);
+    }, function(error) {
+        console.log('error', error);
+    })
+    .then(function(data) {
+        console.log('third then', data);
+    }, function(error) {
+        console.log('error', error);
+    })
+    .catch(function(error) {
+        console.log('catched', error);
+    });
+
+    /*
+ Promise {[[PromiseStatus]]: "pending", [[PromiseValue]]: undefined}
+ passed
+ first then abc
+ second then abc1
+ third then abc12
+ failed
+ error Object {error: "error"}
+ third then undefined
+ */
+
+</pre>
+
+<h2 id="example2">Example 2</h2>
+<h3>Nested promise and execution timing</h3>
+
+<pre class="jsCode">
+    "use strict";
+
+var countriesData = ['uk', 'france'];
+
+var citiesData = {
+    'uk' : ['london', 'barmingham', 'glassgo'],
+    'france' : ['paris', 'roen', 'calai']
+};
+
+var intervalTime = 1000;
+
+function getCountries () {
+    intervalTime = intervalTime + 1000;
+    //var intervalTime = 1000;
+    return new Promise(function(resolve, reject) {
+        setTimeout(function() {
+            if(countriesData){
+                resolve(countriesData);
+            } else {
+                reject({error: 'error'});
+            }
+        }, intervalTime);
+
+    });
+}
+
+function getCities(country) {
+    //var intervalTime = 2000;
+    intervalTime = intervalTime + 2000;
+    var country = citiesData[country];
+    return new Promise(function(resolve, reject) {
+        setTimeout(function() {
+            if(country){
+                resolve(country);
+            } else {
+                reject({error: 'error'});
+            }
+        }, intervalTime);
+
+    });
+}
+
+function drawCountry(country) {
+    var h1 = document.createElement('ul');
+    h1.id = country;
+    var h1Text = document.createTextNode(country);
+
+    h1.appendChild(h1Text);
+    document.body.appendChild(h1)
+}
+
+function drawCity(country, city) {
+    var countryNode = document.getElementById(country);
+    var cityNode = document.createElement('li');
+    var cityTextNode = document.createTextNode(city);
+
+    cityNode.appendChild(cityTextNode);
+    countryNode.appendChild(cityNode);
+}
+
+var countries = new getCountries();
+
+countries.then(
+    function(data) {
+        for(var i=0; i<data.length; i++) {
+            var currentCountry = data[i];
+            drawCountry(currentCountry);
+
+            (function(currentCountry) {
+                var cities = new getCities(currentCountry); // promise happens after executing outer loop so without passing context, only last values are displayed
+                cities.then(function(dataI) {
+
+                    for(var j=0; j<dataI.length; j++) {
+                        var currentCity = dataI[j];
+                        console.log('city' + j, currentCity);
+                        drawCity(currentCountry, currentCity)
+                    }
+
+                }, function (error) {
+                    console.log('cities eror', error);
+                });
+            })(currentCountry);
+        }
+        console.log('data', data);
+    },
+    function(error) {
+        console.log('error', error);
+    }
+);
+</pre>
+
+</body>
+</html>
