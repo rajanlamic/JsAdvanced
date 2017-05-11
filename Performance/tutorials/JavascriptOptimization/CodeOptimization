@@ -1,0 +1,123 @@
+https://developers.google.com/speed/articles/optimizing-javascript#Initializing-instance-variables
+
+
+Optimizing JavaScript code
+
+Authors: Gregory Baker, Software Engineer on GMail & Erik Arvidsson, Software Engineer on Google Chrome
+
+Recommended experience: Working knowledge of JavaScript
+
+Client-side scripting can make your application dynamic and active, but the browser's interpretation of this code can itself introduce inefficiencies, and the performance of different constructs varies from client to client. Here we discuss a few tips and best practices to optimize your JavaScript code.
+
+Defining class methods
+
+The following is inefficient, as each time a instance of baz.Bar is constructed, a new function and closure is created for foo:
+
+baz.Bar = function() {
+  // constructor body
+  this.foo = function() {
+    // method body
+  };
+}
+The preferred approach is:
+
+baz.Bar = function() {
+  // constructor body
+};
+
+baz.Bar.prototype.foo = function() {
+  // method body
+};
+With this approach, no matter how many instances of baz.Bar are constructed, only a single function is ever created for foo, and no closures are created.
+
+Initializing instance variables
+
+Place instance variable declaration/initialization on the prototype for instance variables with value type (rather than reference type) initialization values (i.e. values of type number, Boolean, null, undefined, or string). This avoids unnecessarily running the initialization code each time the constructor is called. (This can't be done for instance variables whose initial value is dependent on arguments to the constructor, or some other state at time of construction.)
+
+For example, instead of:
+
+foo.Bar = function() {
+  this.prop1_ = 4;
+  this.prop2_ = true;
+  this.prop3_ = [];
+  this.prop4_ = 'blah';
+};
+Use:
+
+foo.Bar = function() {
+  this.prop3_ = [];
+};
+
+foo.Bar.prototype.prop1_ = 4;
+
+foo.Bar.prototype.prop2_ = true;
+
+foo.Bar.prototype.prop4_ = 'blah';
+Avoiding pitfalls with closures
+
+Closures are a powerful and useful feature of JavaScript; however, they have several drawbacks, including:
+
+They are the most common source of memory leaks.
+Creating a closure is significantly slower than creating an inner function without a closure, and much slower than reusing a static function. For example:
+
+function setupAlertTimeout() {
+  var msg = 'Message to alert';
+  window.setTimeout(function() { alert(msg); }, 100);
+}
+is slower than:
+
+function setupAlertTimeout() {
+  window.setTimeout(function() {
+    var msg = 'Message to alert';
+    alert(msg);
+  }, 100);
+}
+which is slower than:
+
+function alertMsg() {
+  var msg = 'Message to alert';
+  alert(msg);
+}
+
+function setupAlertTimeout() {
+  window.setTimeout(alertMsg, 100);
+}
+They add a level to the scope chain. When the browser resolves properties, each level of the scope chain must be checked. In the following example:
+
+var a = 'a';
+
+function createFunctionWithClosure() {
+  var b = 'b';
+  return function () {
+    var c = 'c';
+    a;
+    b;
+    c;
+  };
+}
+
+var f = createFunctionWithClosure();
+f();
+when f is invoked, referencing a is slower than referencing b, which is slower than referencing c.
+See IE+JScript Performance Recommendations Part 3: JavaScript Code inefficiencies for information on when to use closures with IE.
+
+Avoiding with
+
+Avoid using with in your code. It has a negative impact on performance, as it modifies the scope chain, making it more expensive to look up variables in other scopes.
+
+Avoiding browser memory leaks
+
+Memory leaks are an all too common problem with web applications, and can result in huge performance hits. As the memory usage of the browser grows, your web application, along with the rest of the user's system, slows down. The most common memory leaks for web applications involve circular references between the JavaScript script engine and the browsers' C++ objects' implementing the DOM (e.g. between the JavaScript script engine and Internet Explorer's COM infrastructure, or between the JavaScript engine and Firefox XPCOM infrastructure).
+
+Here are some rules of thumb for avoiding memory leaks:
+
+Use an event system for attaching event handlers
+
+The most common circular reference pattern [ DOM element --> event handler --> closure scope --> DOM ] element is discussed in this MSDN blog post. To avoid this problem, use one of the well-tested event systems for attaching event handlers, such as those in Google doctype, Dojo, or JQuery.
+
+In addition, using inline event handlers can lead to another kind of leak in IE. This is not the common circular reference type leak, but rather a leak of an internal temporary anonymous script object. For details, see the section on "DOM Insertion Order Leak Model" in Understanding and Solving Internet Explorer Leak Patterns and and an example in this JavaScript Kit tutorial.
+
+Avoid expando properties
+
+Expando properties are arbitrary JavaScript properties on DOM elements and are a common source of circular references. You can use expando properties without introducing memory leaks, but it is pretty easy to introduce one by accident. The leak pattern here is [ DOM element --> via expando--> intermediary object --> DOM element ]. The best thing to do is to just avoid using them. If you do use them, only use values with primitive types. If you do use non-primitive values, nullify the expando property when it is no longer needed. See the section on "Circular References" in Understanding and Solving Internet Explorer Leak Patterns.
+
