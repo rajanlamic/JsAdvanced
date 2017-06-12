@@ -1,0 +1,77 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title></title>
+    <link href="../../main.css" rel="stylesheet" />
+</head>
+<body>
+<h1>Recursion</h1>
+<p>Recursion is a way to get things in loop. Lets have a simple example of loop which prints all 10 numbers</p>
+<h2>Simple loop</h2>
+    <pre class="jsCode">
+        function simpleLoop() {
+            for(var i=0; i<10; i++) {
+                document.getElementById("root").innerHTML += i + "\t";
+            }
+        }
+
+        // Call
+        simpleLoop(); // 0 1 2 3 4 5 6 7 8 9
+    </pre>
+    <p>
+        Now lets get the same result with loop
+    </p>
+    <h2>Simple loop result with recursion</h2>
+    <p>Now lets examine the same result with recursion.</p>
+    <pre class="jsCode">
+        function simpleLoopWithRecursion(num) {
+        if(num > 9) {
+            return num;
+        } else {
+            document.getElementById("root").innerHTML += num + "\t";
+            return simpleLoopWithRecursion(num + 1);
+        }
+    }
+
+    // Call
+    simpleLoopWithRecursion(0); // 0 1 2 3 4 5 6 7 8 9
+    </pre>
+    <p>
+        So recursion could achive the same result as loop could get.
+        Therefore you could use loop and recursion interchangeably use in any javascript operation.
+        Basically you don't need any local variable to setup in function for recursion so it can be
+        written in pure function which does not need any state.
+    </p>
+    <h2>Factorial with simple loop</h2>
+    <p>You can get factorial with simple for loop without using recursion function. Here is an example below. However it uses
+    local state variable to hold result. So its not pure function</p>
+    <pre class="jsCode">
+        function simpleLoopFactorial(num) {
+            var result = 1;
+            for(var i=1; i<=num; i++) {
+                result *= i;
+            }
+            return result;
+        }
+
+        // Call
+        document.getElementById("root").innerHTML += "\t" + simpleLoopFactorial(5); // 120
+    </pre>
+    <h2>Factorial with recursion</h2>
+    <p>This is the easiest and recommended way of calculating factorial using recorsive funcion where you don't
+    need any local state which means you can use pure function. Here is a code snippet.</p>
+    <pre class="jsCode">
+        function recursionFactorial(num) {
+            if(num <= 0) {
+                return 1;
+            } else {
+                return num * recursionFactorial(num -1);
+            }
+        }
+
+        // Call
+        document.getElementById("root").innerHTML += "\t" + recursionFactorial(5); // 120
+    </pre>
+</body>
+</html>
